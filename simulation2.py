@@ -4,6 +4,7 @@ import random
 import numpy as np
 import math
 from scipy.integrate import odeint
+import pymunk
 
 #initaializing pygame constructer
 pygame.init()
@@ -31,9 +32,11 @@ class particle:
         self.radius = radius
         self.mass = mass
         self.angle = random.uniform(0,2*math.pi)
+
     #function to draw the particles on screen
     def draw(self):
         pygame.draw.circle(window,self.color,(self.x_pos,self.y_pos),self.radius)
+
     #method to update the positions
     def update_pos(self):
         global t
@@ -52,36 +55,41 @@ class particle:
         self.x_pos = self.x_pos + (acc*t)
         self.y_pos = self.y_pos + (acc*t)
         """
+
     def center_r(self):
         self.x_pos*self.mass/self.mass
         pass
-
+    #defining acceleration
+    
     def force(self,other):
+        global r
         dx = (self.x_pos-other.x_pos)**2
         dy = (self.y_pos-other.y_pos)**2
         r = max(math.sqrt(dx+dy),1)
-        f  = self.mass*other.mass/r**2
-
-        #acceleration component
+        f  = self.mass*other.mass/10e3
         ax = f*dx/r
         ay = f*dy/r
-
         #updating particle velocity
         self.vel += ax/self.mass
         self.angle = math.atan2(self.vel*math.sin(self.angle)+ay/self.mass,self.vel*math.cos(self.angle)+ax/self.mass)
-   
+
+    def collision(self,other):
+            if r <= self.radius+other.radius:
+                self.angle = (math.pi)/2-self.angle
+            #acceleration component
 
 
 
 #creating entities
-p1 = particle(50,50,random.randint(1,5),20,"red",5)
-p2 = particle(500,10,random.randint(1,5),30,"yellow",9)
+p1 = particle(50,5,random.randint(1,5),5,"red",0.2)
+p2 = particle(400,300,random.randint(1,5),30,"yellow",10)
 
 #function to calculate coordinates of barycenter
 def center_mass(a,b):
     global x_cm,y_cm
     x_cm = ((a.x_pos*a.mass)+(b.x_pos*b.mass))/(a.mass+b.mass)
     y_cm = ((a.y_pos*a.mass)+(b.y_pos*b.mass))/(a.mass+b.mass)
+    return x_cm,y_cm
     #print(x_cm,y_cm)
 
 
@@ -104,11 +112,13 @@ while running:
         elif p1.x_pos <= 0:
             p1.x_vel += 1
         """ 
+
     window.fill("black")
     p1.draw()
     p2.draw()
     p1.force(p2)
     p2.force(p1)
+    p1.collision(p2)
     p1.update_pos()
     p2.update_pos()
     center_mass(p1,p2)
@@ -119,5 +129,6 @@ while running:
     p2.x_pos = p2.x_pos + p2.x_vel
     p2.y_pos = p2.y_pos + p2.y_vel
     """
+    pygame.display.set_caption("Two Body Simulation")
     pygame.display.flip()
     clock.tick(30)
