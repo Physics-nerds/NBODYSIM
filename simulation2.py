@@ -66,7 +66,7 @@ class particle:
         dx = (self.x_pos-other.x_pos)**2
         dy = (self.y_pos-other.y_pos)**2
         r = max(math.sqrt(dx+dy),1)
-        f  = self.mass*other.mass/10e3
+        f  = self.mass*other.mass/10e5
         ax = f*dx/r
         ay = f*dy/r
         #updating particle velocity
@@ -82,7 +82,7 @@ class particle:
 
 #creating entities
 p1 = particle(50,5,random.randint(1,5),5,"red",0.2)
-p2 = particle(400,300,random.randint(1,5),30,"yellow",10)
+p2 = particle(400,300,random.randint(1,5),30,"light blue",8)
 
 #function to calculate coordinates of barycenter
 def center_mass(a,b):
