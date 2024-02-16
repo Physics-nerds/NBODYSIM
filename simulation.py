@@ -52,18 +52,13 @@ class particle:
     #method to update the positions
     def update_pos(self):
         global x,v
-        t = 60
         
-        self.x_pos = self.x_vel+self.x_pos
-        self.y_pos = self.y_vel+self.y_pos
+        self.x_pos += self.x_vel*math.cos(self.angle)
+        self.y_pos += self.y_vel*math.sin(self.angle)
         if self.x_pos<=0 or self.x_pos>=screen_w:
-            self.angle = math.pi- self.angle
-        if self.y_pos<=0 or self.y_pos>=screen_h:
             self.angle = math.pi-self.angle
-        x = []
-        v = []
-        x.append(self.x_pos)
-        v.append(self.x_vel)
+        if self.y_pos<=0 or self.y_pos>=screen_h:
+            self.angle = 2*math.pi-self.angle
     
 
     def force(self,other):
@@ -78,7 +73,8 @@ class particle:
         ay = a*math.sin(math.atan(dy/dx))
         self.x_vel = self.x_vel + ax*t
         self.y_vel = self.y_vel + ay*t
-        
+        self.x_pos = self.x_pos +self.x_vel
+        self.y_pos = self.y_pos + self.y_vel
 
 
 #creating entities
@@ -102,28 +98,15 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running  = False
-        p1.force(p2)
-        p1.update_pos()
         """
-        p1.x_vel += 0.05
-        p1.y_vel += 0.05
-        p2.x_vel += 0.01
-        p2.y_vel += 0.03
+        p1.x_pos += 0.01
+        p2.y_pos += 0.01
         """
     window.fill("black")
     p1.draw()
     p2.draw()
-    p1.force(p2)
-    p1.update_pos()
-    #p2.update_pos()
     
-   
-    """
-    p1.x_pos = p1.x_pos + p1.x_vel
-    p1.y_pos = p1.y_pos + p1.y_vel
-    p2.x_pos = p2.x_pos + p2.x_vel
-    p2.y_pos = p2.y_pos + p2.y_vel
-    """
+    p1.update_pos()
     pygame.display.flip()
     clock.tick(30)
 
