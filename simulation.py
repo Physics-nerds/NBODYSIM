@@ -3,8 +3,7 @@ import pygame
 import random
 import numpy as np
 import math
-from scipy.integrate import odeint
-
+import matplotlib.pyplot as plt
 #initaializing pygame constructer
 pygame.init()
 
@@ -16,12 +15,11 @@ clock = pygame.time.Clock()
 running = True
 
 #some contants
-G = 6.673 * math.pow(10,-11)
+G = 6.673e-11
 
 #creating class for creating bodies
 class particle:
-    x = []
-    y = []
+   
     
     def __init__(self,x_pos,y_pos,X_vel,y_vel,radius,color,mass):
         self.x_pos = x_pos
@@ -31,56 +29,61 @@ class particle:
         self.color = color
         self.radius = radius
         self.mass = mass
-        self.angle = random.uniform(0,2*math.pi)
+        self.angle = 90#random.uniform(0,2*math.pi)
     #function to draw the particles on screen
     def draw(self):
         pygame.draw.circle(window,self.color,(self.x_pos,self.y_pos),self.radius)
+
+    def force(self,other):
+        global ax,ay,f
+        t = 60
+        dx = (self.x_pos-other.x_pos)**2
+        dy = (self.y_pos-other.y_pos)**2
+        distance = math.sqrt(dx+dy)
+        f = G*self.mass*other.mass/distance
+        a = f/self.mass
+        ax = a*math.cos(self.angle)
+        ay = a*math.sin(self.angle)
+ 
+    def values(ax,ay):
+        return ax,ay
+
+
     #method to update the positions
     def update_pos(self):
-        global t
-        self.x_pos = self.x_vel*math.cos(self.angle)
-        self.y_pos = self.y_vel*math.sin(self.angle)
+        global x,v
+        t = 60
+        
+        self.x_pos = self.x_vel+self.x_pos
+        self.y_pos = self.y_vel+self.y_pos
         if self.x_pos<=0 or self.x_pos>=screen_w:
             self.angle = math.pi- self.angle
         if self.y_pos<=0 or self.y_pos>=screen_h:
             self.angle = math.pi-self.angle
-        """    
-        t = np.linspace(0,10)
-        acc = F/self.mass
-        #x_vel = odeint(return_dvdt,self.x_vel,t)
-        #self.x_pos = self.x_pos + self.x_vel
-        #self.y_pos = self.y_pos + self.y_vel
-        self.x_pos = self.x_pos + (acc*t)
-        self.y_pos = self.y_pos + (acc*t)
-        """
-    def center_r(self):
-        self.x_pos*self.mass/self.mass
-        pass
+        x = []
+        v = []
+        x.append(self.x_pos)
+        v.append(self.x_vel)
+    
 
     def force(self,other):
-        x = (self.x_pos-other.x_pos)**2
-        y = (self.y_pos-other.y_pos)**2
-        r = max(math.sqrt(x+y),1)
-        f  = self.mass*other.mass/r**2
-
-        #acceleration component
-        ax = f*x/r
-        ay = f*y/r
-
-        #updating particle velocity
-        self.x_vel = ax/self.mass
-        self.angle = math.atan(self.x_vel)
-    """
-    def return_dvdt():
-        dvdt = F/self.mass
-        return dvdt
-    """
-
+        global ax,ay,f
+        t = 0.21
+        dx = max((self.x_pos-other.x_pos)**2,1)
+        dy = (self.y_pos-other.y_pos)**2
+        distance = math.sqrt(dx+dy)
+        f = G*self.mass*other.mass/distance
+        a = f/self.mass
+        ax = a*math.cos(math.atan(dy/dx))
+        ay = a*math.sin(math.atan(dy/dx))
+        self.x_vel = self.x_vel + ax*t
+        self.y_vel = self.y_vel + ay*t
+        
 
 
 #creating entities
-p1 = particle(50,50,0,0,20,"red",1)
-p2 = particle(300,100,0,0,30,"yellow",10)
+p1 = particle(100,50,0,0,20,"red",5)
+p2 = particle(400,300,0,0,30,"yellow",10)
 
 #function to calculate coordinates of barycenter
 def center_mass(a,b):
@@ -89,55 +92,32 @@ def center_mass(a,b):
     y_cm = ((a.y_pos*a.mass)+(b.y_pos*b.mass))/(a.mass+b.mass)
     #print(x_cm,y_cm)
 
-def return_dvdt(body_1):
-    dvdt = F/body_1.mass
-    return dvdt
 
 
-#defining method for graviation
-def grav(body_1,body_2):
-    global r,F,acc
-    #calculating distance between bodies
-    
-    
-    r = math.sqrt(math.pow((body_1.x_pos-body_2.x_pos),2)+math.pow((body_1.y_pos-body_2.y_pos),2))
-    np.vectorize()
-    #defining the force
-    F = G*body_1.mass*body_2.mass/math.pow(r,2)
-    #dv = (F/m)dt
-    #print(F)
-    return F,r
-def fvalue(f):
-    return f
-fvalue(grav(p1,p2))
+
+
+
 #defining the mainloop
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running  = False
+        p1.force(p2)
+        p1.update_pos()
         """
         p1.x_vel += 0.05
         p1.y_vel += 0.05
         p2.x_vel += 0.01
         p2.y_vel += 0.03
         """
-        p1.x_vel += 0.05
-        p1.y_vel += 0.05
-        p2.x_vel += 0.01
-        p2.y_vel += 0.03
-        """
-        if p1.x_pos >= screen_w:
-            p1.x_vel -= 2
-        elif p1.x_pos <= 0:
-            p1.x_vel += 1
-        """ 
     window.fill("black")
     p1.draw()
     p2.draw()
+    p1.force(p2)
     p1.update_pos()
-    p2.update_pos()
-    center_mass(p1,p2)
-    grav(p1,p2)
+    #p2.update_pos()
+    
+   
     """
     p1.x_pos = p1.x_pos + p1.x_vel
     p1.y_pos = p1.y_pos + p1.y_vel
@@ -146,3 +126,4 @@ while running:
     """
     pygame.display.flip()
     clock.tick(30)
+
